@@ -1,0 +1,23 @@
+# Virtual environments
+myenv/
+venv/
+.env/
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# Media and large binary assets
+media/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.mov
+
+# Optional
+.ipynb_checkpoints/
+.idea/
+.vscode/
+
