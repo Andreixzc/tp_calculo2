@@ -1,0 +1,51 @@
+COMANDOS PARA COMPILAR AS ANIMAÇÕES DE REDES NEURAIS
+========================================================
+
+1a. Caminho Simplificado (com Glossário):
+   manim -pql architecture_animation.py SimplifiedPath
+
+1b. Arquitetura da Rede Neural Completa:
+   manim -pql architecture_animation.py NeuralNetworkArchitecture
+
+2. Função de Perda (Loss):
+   manim -pql loss_function_animation.py LossFunction
+
+3. Gradient Descent 2D:
+   manim -pql gradient_descent_2d_animation.py GradientDescent2D
+
+4. Gradient Descent 3D:
+   manim -pql gradient_descent_3d_animation.py GradientDescent3D
+
+5. Regra da Cadeia:
+   manim -pql chain_rule_animation.py ChainRule
+
+6. Backpropagation:
+   manim -pql backpropagation_animation.py Backpropagation
+
+========================================================
+OPÇÕES DE QUALIDADE:
+  -pql  : Qualidade baixa (480p) - rápido para testes
+  -pqm  : Qualidade média (720p)
+  -pqh  : Qualidade alta (1080p)
+  -pqk  : Qualidade 4K (2160p)
+
+EXEMPLO EM ALTA QUALIDADE:
+  manim -pqh architecture_animation.py NeuralNetworkArchitecture
+
+COMPILAR TODAS AS ANIMAÇÕES DE UMA VEZ (qualidade baixa):
+  manim -pql architecture_animation.py SimplifiedPath && \
+  manim -pql architecture_animation.py NeuralNetworkArchitecture && \
+  manim -pql loss_function_animation.py LossFunction && \
+  manim -pql gradient_descent_2d_animation.py GradientDescent2D && \
+  manim -pql gradient_descent_3d_animation.py GradientDescent3D && \
+  manim -pql chain_rule_animation.py ChainRule && \
+  manim -pql backpropagation_animation.py Backpropagation
+
+COMPILAR TODAS EM ALTA QUALIDADE:
+  manim -pqh architecture_animation.py SimplifiedPath && \
+  manim -pqh architecture_animation.py NeuralNetworkArchitecture && \
+  manim -pqh loss_function_animation.py LossFunction && \
+  manim -pqh gradient_descent_2d_animation.py GradientDescent2D && \
+  manim -pqh gradient_descent_3d_animation.py GradientDescent3D && \
+  manim -pqh chain_rule_animation.py ChainRule && \
+  manim -pqh backpropagation_animation.py Backpropagation
