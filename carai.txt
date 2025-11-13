@@ -1,7 +1,7 @@
+  manim -pqh architecture_animation.py SimplifiedPath && \
   manim -pqh architecture_animation.py NeuralNetworkArchitecture && \
   manim -pqh loss_function_animation.py LossFunction && \
   manim -pqh gradient_descent_2d_animation.py GradientDescent2D && \
   manim -pqh gradient_descent_3d_animation.py GradientDescent3D && \
   manim -pqh chain_rule_animation.py ChainRule && \
   manim -pqh backpropagation_animation.py Backpropagation
-

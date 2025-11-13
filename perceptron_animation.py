@@ -2,20 +2,17 @@ from manim import *
 import numpy as np
 
 # ==============================================================================
-# 3 ANIMAÇÕES PRINCIPAIS:
+# 2 ANIMAÇÕES PRINCIPAIS:
 # 1. PerceptronArchitecture - Estrutura + Regra de aprendizado
-# 2. ANDSuccess - Perceptron resolve AND (linearmente separável)
-# 3. XORFailure - Perceptron falha com XOR (não-linearmente separável)
+# 2. PerceptronLearningDemo - Processo de atualização dinâmica dos pesos
 #
 # Renderizar (teste rápido):
 #   manim -pql perceptron_animation.py PerceptronArchitecture
-#   manim -pql perceptron_animation.py ANDSuccess
-#   manim -pql perceptron_animation.py XORFailure
+#   manim -pql perceptron_animation.py PerceptronLearningDemo
 #
-# Renderizar (alta qualidade, 60fps):
+# Renderizar (alta qualidade):
 #   manim -pqh perceptron_animation.py PerceptronArchitecture
-#   manim -pqh perceptron_animation.py ANDSuccess
-#   manim -pqh perceptron_animation.py XORFailure
+#   manim -pqh perceptron_animation.py PerceptronLearningDemo
 # ==============================================================================
 
 
@@ -209,12 +206,12 @@ class PerceptronArchitecture(Scene):
                 color=RED,
             ),
             MathTex(
-                r"w_i \leftarrow w_i + \alpha \cdot \text{erro} \cdot x_i",
+                r"w_i \leftarrow w_i + \eta \cdot \text{erro} \cdot x_i",
                 font_size=34,
                 color=GREEN,
             ),
             MathTex(
-                r"b \leftarrow b + \alpha \cdot \text{erro}",
+                r"b \leftarrow b + \eta \cdot \text{erro}",
                 font_size=34,
                 color=GREEN,
             ),
@@ -231,391 +228,346 @@ class PerceptronArchitecture(Scene):
         self.wait(2.5)
 
 
-class ANDSuccess(Scene):
-    """Perceptron resolve AND - linearmente separável"""
+class PerceptronLearningDemo(Scene):
+    """Demonstração do processo de atualização dinâmica dos pesos"""
 
     def construct(self):
-        title = Text("AND: Sucesso ✓", font_size=48, weight=BOLD, color=GREEN)
-        title.to_edge(UP, buff=0.4)
-        self.play(Write(title), run_time=1.5)
-        self.wait(2)
-
-        # Truth table
-        self.show_truth_table()
-        self.wait(2)
-
-        # 2D visualization
-        self.show_2d_plot()
-        self.wait(3)
-
-    def show_truth_table(self):
-        """Show AND truth table"""
-
-        table_title = Text("Tabela verdade:", font_size=30, weight=BOLD)
-        table_title.shift(UP * 2.3 + LEFT * 4.8)
-
-        # Create table manually for better control
-        table_data = VGroup(
-            VGroup(
-                MathTex("x_1", font_size=32),
-                MathTex("x_2", font_size=32),
-                MathTex("y", font_size=32),
-            ).arrange(RIGHT, buff=0.8),
-            VGroup(
-                MathTex("0", font_size=30, color=RED),
-                MathTex("0", font_size=30, color=RED),
-                MathTex("0", font_size=30, color=RED),
-            ).arrange(RIGHT, buff=1.0),
-            VGroup(
-                MathTex("0", font_size=30, color=RED),
-                MathTex("1", font_size=30, color=RED),
-                MathTex("0", font_size=30, color=RED),
-            ).arrange(RIGHT, buff=1.0),
-            VGroup(
-                MathTex("1", font_size=30, color=RED),
-                MathTex("0", font_size=30, color=RED),
-                MathTex("0", font_size=30, color=RED),
-            ).arrange(RIGHT, buff=1.0),
-            VGroup(
-                MathTex("1", font_size=30, color=GREEN),
-                MathTex("1", font_size=30, color=GREEN),
-                MathTex("1", font_size=30, color=GREEN),
-            ).arrange(RIGHT, buff=1.0),
-        ).arrange(DOWN, buff=0.4)
-
-        table_data.next_to(table_title, DOWN, buff=0.4)
-
-        # Box around table
-        table_box = SurroundingRectangle(table_data, color=WHITE, buff=0.3)
-
-        self.play(Write(table_title), run_time=1)
-        self.wait(0.5)
-        self.play(Create(table_box), run_time=1)
-        self.wait(0.5)
-
-        for row in table_data:
-            self.play(Write(row), run_time=1)
-            self.wait(0.8)
-
-        self.wait(1)
-        self.table_group = VGroup(table_title, table_box, table_data)
-
-    def show_2d_plot(self):
-        """Show 2D plot with decision boundary"""
-
-        # Move table
-        self.play(
-            self.table_group.animate.scale(0.8).shift(LEFT * 0.3), run_time=1.5
-        )
-        self.wait(0.5)
-
-        # Create axes
-        axes = Axes(
-            x_range=[-0.3, 1.3, 0.5],
-            y_range=[-0.3, 1.3, 0.5],
-            x_length=5,
-            y_length=5,
-            axis_config={"include_tip": True},
-        ).shift(RIGHT * 2.8 + DOWN * 0.5)
-
-        labels = VGroup(
-            MathTex("x_1", font_size=36).next_to(
-                axes.x_axis.get_end(), RIGHT, buff=0.2
-            ),
-            MathTex("x_2", font_size=36).next_to(
-                axes.y_axis.get_end(), UP, buff=0.2
-            ),
-        )
-
-        self.play(Create(axes), Write(labels), run_time=2)
-        self.wait(1)
-
-        # Plot points
-        points = [
-            (0, 0, RED, "(0,0) \\to 0"),
-            (0, 1, RED, "(0,1) \\to 0"),
-            (1, 0, RED, "(1,0) \\to 0"),
-            (1, 1, GREEN, "(1,1) \\to 1"),
-        ]
-
-        dots = VGroup()
-        point_labels = VGroup()
-
-        for x, y, color, label_text in points:
-            dot = Dot(axes.c2p(x, y), color=color, radius=0.15)
-            label = MathTex(label_text, font_size=24, color=color)
-
-            # Position labels to avoid overlap
-            if x == 0 and y == 0:
-                label.next_to(dot, DOWN + LEFT, buff=0.15)
-            elif x == 0 and y == 1:
-                label.next_to(dot, UP + LEFT, buff=0.15)
-            elif x == 1 and y == 0:
-                label.next_to(dot, DOWN + RIGHT, buff=0.15)
-            else:
-                label.next_to(dot, UP + RIGHT, buff=0.15)
-
-            dots.add(dot)
-            point_labels.add(label)
-
-        self.play(
-            LaggedStart(*[Create(d) for d in dots], lag_ratio=0.3), run_time=2
-        )
-        self.wait(0.5)
-
-        self.play(
-            LaggedStart(*[Write(l) for l in point_labels], lag_ratio=0.3),
-            run_time=2,
-        )
-        self.wait(2)
-
-        # Decision boundary
-        separation_text = Text(
-            "Linearmente separável!", font_size=34, weight=BOLD, color=YELLOW
-        ).to_edge(DOWN, buff=0.6)
-
-        self.play(Write(separation_text), run_time=1.5)
-        self.wait(1)
-
-        # Draw line that correctly separates AND points
-        # Line: x1 + x2 = 1.5 (separates (1,1) from the other three points)
-        # Extended to be clearly visible
-        line = Line(
-            axes.c2p(0.3, 1.2), axes.c2p(1.2, 0.3), color=BLUE, stroke_width=5
-        )
-
-        self.play(Create(line), run_time=2)
-        self.wait(2.5)
-
-
-class XORFailure(Scene):
-    """Perceptron falha com XOR - não-linearmente separável"""
-
-    def construct(self):
-        title = Text("XOR: Impossível ✗", font_size=48, weight=BOLD, color=RED)
-        title.to_edge(UP, buff=0.4)
-        self.play(Write(title), run_time=1.5)
-        self.wait(2)
-
-        # Truth table
-        self.show_truth_table()
-        self.wait(2)
-
-        # 2D visualization
-        self.show_2d_plot()
-        self.wait(2)
-
-        # Try to separate (and fail)
-        self.show_impossibility()
-        self.wait(3)
-
-    def show_truth_table(self):
-        """Show XOR truth table"""
-
-        table_title = Text("Tabela verdade:", font_size=30, weight=BOLD)
-        table_title.shift(UP * 2.3 + LEFT * 4.8)
-
-        table_data = VGroup(
-            VGroup(
-                MathTex("x_1", font_size=32),
-                MathTex("x_2", font_size=32),
-                MathTex("y", font_size=32),
-            ).arrange(RIGHT, buff=0.8),
-            VGroup(
-                MathTex("0", font_size=30, color=RED),
-                MathTex("0", font_size=30, color=RED),
-                MathTex("0", font_size=30, color=RED),
-            ).arrange(RIGHT, buff=1.0),
-            VGroup(
-                MathTex("0", font_size=30, color=GREEN),
-                MathTex("1", font_size=30, color=GREEN),
-                MathTex("1", font_size=30, color=GREEN),
-            ).arrange(RIGHT, buff=1.0),
-            VGroup(
-                MathTex("1", font_size=30, color=GREEN),
-                MathTex("0", font_size=30, color=GREEN),
-                MathTex("1", font_size=30, color=GREEN),
-            ).arrange(RIGHT, buff=1.0),
-            VGroup(
-                MathTex("1", font_size=30, color=RED),
-                MathTex("1", font_size=30, color=RED),
-                MathTex("0", font_size=30, color=RED),
-            ).arrange(RIGHT, buff=1.0),
-        ).arrange(DOWN, buff=0.4)
-
-        table_data.next_to(table_title, DOWN, buff=0.4)
-
-        table_box = SurroundingRectangle(table_data, color=WHITE, buff=0.3)
-
-        self.play(Write(table_title), run_time=1)
-        self.wait(0.5)
-        self.play(Create(table_box), run_time=1)
-        self.wait(0.5)
-
-        for row in table_data:
-            self.play(Write(row), run_time=1)
-            self.wait(0.8)
-
-        self.wait(1)
-        self.table_group = VGroup(table_title, table_box, table_data)
-
-    def show_2d_plot(self):
-        """Show 2D plot with XOR points"""
-
-        # Move table
-        self.play(
-            self.table_group.animate.scale(0.8).shift(LEFT * 0.3), run_time=1.5
-        )
-        self.wait(0.5)
-
-        # Create axes
-        axes = Axes(
-            x_range=[-0.3, 1.3, 0.5],
-            y_range=[-0.3, 1.3, 0.5],
-            x_length=5,
-            y_length=5,
-            axis_config={"include_tip": True},
-        ).shift(RIGHT * 2.8 + DOWN * 0.5)
-
-        labels = VGroup(
-            MathTex("x_1", font_size=36).next_to(
-                axes.x_axis.get_end(), RIGHT, buff=0.2
-            ),
-            MathTex("x_2", font_size=36).next_to(
-                axes.y_axis.get_end(), UP, buff=0.2
-            ),
-        )
-
-        self.play(Create(axes), Write(labels), run_time=2)
-        self.wait(1)
-
-        # Plot XOR points
-        points = [
-            (0, 0, RED, "(0,0) \\to 0"),
-            (0, 1, GREEN, "(0,1) \\to 1"),
-            (1, 0, GREEN, "(1,0) \\to 1"),
-            (1, 1, RED, "(1,1) \\to 0"),
-        ]
-
-        dots = VGroup()
-        point_labels = VGroup()
-
-        for x, y, color, label_text in points:
-            dot = Dot(axes.c2p(x, y), color=color, radius=0.15)
-            label = MathTex(label_text, font_size=24, color=color)
-
-            if x == 0 and y == 0:
-                label.next_to(dot, DOWN + LEFT, buff=0.15)
-            elif x == 0 and y == 1:
-                label.next_to(dot, UP + LEFT, buff=0.15)
-            elif x == 1 and y == 0:
-                label.next_to(dot, DOWN + RIGHT, buff=0.15)
-            else:
-                label.next_to(dot, UP + RIGHT, buff=0.15)
-
-            dots.add(dot)
-            point_labels.add(label)
-
-        self.play(
-            LaggedStart(*[Create(d) for d in dots], lag_ratio=0.3), run_time=2
-        )
-        self.wait(0.5)
-
-        self.play(
-            LaggedStart(*[Write(l) for l in point_labels], lag_ratio=0.3),
-            run_time=2,
-        )
-        self.wait(2)
-
-        self.axes = axes
-        self.dots = dots
-
-    def show_impossibility(self):
-        """Try different lines and show it's impossible"""
-
-        impossibility_text = Text(
-            "NÃO linearmente separável!", font_size=34, weight=BOLD, color=RED
-        ).to_edge(DOWN, buff=0.6)
-
-        self.play(Write(impossibility_text), run_time=1.5)
-        self.wait(1.5)
-
-        # Try multiple lines and show they all fail
-        line1 = Line(
-            self.axes.c2p(-0.2, 0.5),
-            self.axes.c2p(1.2, 0.5),
-            color=ORANGE,
-            stroke_width=4,
-        )
-
-        line2 = Line(
-            self.axes.c2p(0.5, -0.2),
-            self.axes.c2p(0.5, 1.2),
-            color=ORANGE,
-            stroke_width=4,
-        )
-
-        line3 = Line(
-            self.axes.c2p(-0.2, 1.2),
-            self.axes.c2p(1.2, -0.2),
-            color=ORANGE,
-            stroke_width=4,
-        )
-
-        cross = VGroup(
-            Line(
-                ORIGIN + UP * 0.15 + LEFT * 0.15,
-                ORIGIN + DOWN * 0.15 + RIGHT * 0.15,
-                color=RED,
-                stroke_width=5,
-            ),
-            Line(
-                ORIGIN + UP * 0.15 + RIGHT * 0.15,
-                ORIGIN + DOWN * 0.15 + LEFT * 0.15,
-                color=RED,
-                stroke_width=5,
-            ),
-        )
-
-        # Try line 1
-        self.play(Create(line1), run_time=1.5)
-        self.wait(1)
-        cross1 = cross.copy().scale(0.8).next_to(line1, RIGHT, buff=0.3)
-        self.play(Create(cross1), run_time=0.8)
-        self.wait(1)
-        self.play(FadeOut(line1), FadeOut(cross1), run_time=0.8)
-
-        # Try line 2
-        self.play(Create(line2), run_time=1.5)
-        self.wait(1)
-        cross2 = cross.copy().scale(0.8).next_to(line2, UP, buff=0.3)
-        self.play(Create(cross2), run_time=0.8)
-        self.wait(1)
-        self.play(FadeOut(line2), FadeOut(cross2), run_time=0.8)
-
-        # Try line 3
-        self.play(Create(line3), run_time=1.5)
-        self.wait(1)
-        cross3 = cross.copy().scale(0.8).move_to(self.axes.c2p(0.8, 0.8))
-        self.play(Create(cross3), run_time=0.8)
-        self.wait(1.5)
-
-        # Final message
-        solution_text = Text(
-            "Solução: Redes Multicamadas!",
-            font_size=30,
+        title = Text(
+            "Perceptron: Atualização de Pesos",
+            font_size=44,
             weight=BOLD,
             color=YELLOW,
-        ).next_to(impossibility_text, UP, buff=0.5)
+        )
+        title.to_edge(UP, buff=0.3)
+        self.play(Write(title), run_time=1.5)
+        self.wait(1)
 
-        self.play(Write(solution_text), run_time=1.5)
+        # Mock training examples
+        self.training_examples = [
+            ([0.2, 0.8], 1),
+            ([0.9, 0.3], 1),
+            ([0.1, 0.2], 0),
+            ([0.7, 0.6], 1),
+            ([0.3, 0.1], 0),
+        ]
+
+        # Initial weights and bias
+        self.w1 = 0.5
+        self.w2 = -0.3
+        self.b = 0.2
+        self.eta = 0.3  # learning rate (η)
+
+        # Build visualization
+        self.build_animated_perceptron()
+        self.wait(1)
+
+        # Show training process
+        self.train_with_examples()
+
         self.wait(3)
+
+    def build_animated_perceptron(self):
+        """Build perceptron with animated components"""
+
+        # Inputs
+        self.x1_circle = Circle(radius=0.35, color=BLUE, fill_opacity=0.3).shift(
+            LEFT * 4 + UP * 1
+        )
+        self.x2_circle = Circle(radius=0.35, color=BLUE, fill_opacity=0.3).shift(
+            LEFT * 4 + DOWN * 1
+        )
+
+        self.x1_value = DecimalNumber(0, num_decimal_places=1, font_size=28).move_to(
+            self.x1_circle
+        )
+        self.x2_value = DecimalNumber(0, num_decimal_places=1, font_size=28).move_to(
+            self.x2_circle
+        )
+
+        x1_label = MathTex("x_1", font_size=28).next_to(
+            self.x1_circle, LEFT, buff=0.2
+        )
+        x2_label = MathTex("x_2", font_size=28).next_to(
+            self.x2_circle, LEFT, buff=0.2
+        )
+
+        # Neuron
+        self.neuron = Circle(
+            radius=0.6, color=YELLOW, fill_opacity=0.2, stroke_width=3
+        )
+        sigma = MathTex(r"\Sigma", font_size=48).move_to(self.neuron)
+
+        # Weight lines
+        self.w1_line = Line(
+            self.x1_circle.get_right(),
+            self.neuron.get_left() + UP * 0.25,
+            color=GRAY,
+            stroke_width=3,
+        )
+        self.w2_line = Line(
+            self.x2_circle.get_right(),
+            self.neuron.get_left() + DOWN * 0.25,
+            color=GRAY,
+            stroke_width=3,
+        )
+
+        # Weight labels
+        self.w1_value = DecimalNumber(
+            self.w1, num_decimal_places=2, font_size=26, color=RED
+        )
+        self.w1_value.add_updater(
+            lambda m: m.next_to(self.w1_line, UP, buff=0.15)
+        )
+
+        self.w2_value = DecimalNumber(
+            self.w2, num_decimal_places=2, font_size=26, color=RED
+        )
+        self.w2_value.add_updater(
+            lambda m: m.next_to(self.w2_line, DOWN, buff=0.15)
+        )
+
+        # Bias
+        bias_dot = Dot(color=PURPLE, radius=0.08).shift(DOWN * 2.5)
+        self.bias_line = Line(
+            bias_dot.get_top(), self.neuron.get_bottom(), color=PURPLE, stroke_width=3
+        )
+
+        self.b_value = DecimalNumber(
+            self.b, num_decimal_places=2, font_size=26, color=PURPLE
+        )
+        self.b_value.next_to(self.bias_line, RIGHT, buff=0.2)
+
+        # Output
+        self.output_circle = Circle(
+            radius=0.35, color=GREEN, fill_opacity=0.3
+        ).shift(RIGHT * 3)
+        self.y_value = DecimalNumber(0, num_decimal_places=0, font_size=28).move_to(
+            self.output_circle
+        )
+
+        output_line = Line(
+            self.neuron.get_right(),
+            self.output_circle.get_left(),
+            color=GREEN,
+            stroke_width=3,
+        )
+        y_label = MathTex("y", font_size=28).next_to(
+            self.output_circle, RIGHT, buff=0.2
+        )
+
+        self.perceptron_group = VGroup(
+            self.x1_circle,
+            self.x2_circle,
+            self.x1_value,
+            self.x2_value,
+            x1_label,
+            x2_label,
+            self.w1_line,
+            self.w2_line,
+            self.w1_value,
+            self.w2_value,
+            self.neuron,
+            sigma,
+            bias_dot,
+            self.bias_line,
+            self.b_value,
+            output_line,
+            self.output_circle,
+            self.y_value,
+            y_label,
+        )
+
+        self.perceptron_group.scale(0.7).shift(UP * 0.5)
+
+        self.play(Create(self.perceptron_group), run_time=2)
+
+    def train_with_examples(self):
+        """Show training process with mock examples"""
+
+        # Example counter (no box)
+        example_counter = Integer(0, font_size=28, color=ORANGE)
+        counter_text = Text("Exemplo: ", font_size=26)
+        counter_display = VGroup(counter_text, example_counter).arrange(RIGHT)
+        counter_display.to_edge(RIGHT, buff=0.8).shift(UP * 2.5)
+        self.play(Write(counter_display), run_time=0.8)
+
+        for idx, (inputs, target) in enumerate(self.training_examples):
+            x1, x2 = inputs
+
+            # Update example counter
+            self.play(example_counter.animate.set_value(idx + 1), run_time=0.3)
+
+            # Show input values
+            self.play(
+                self.x1_value.animate.set_value(x1),
+                self.x2_value.animate.set_value(x2),
+                self.x1_circle.animate.set_fill(BLUE, opacity=0.2 + 0.5 * x1),
+                self.x2_circle.animate.set_fill(BLUE, opacity=0.2 + 0.5 * x2),
+                run_time=0.8,
+            )
+
+            # Highlight data flow
+            self.play(
+                self.w1_line.animate.set_color(YELLOW).set_stroke(width=5),
+                self.w2_line.animate.set_color(YELLOW).set_stroke(width=5),
+                run_time=0.4,
+            )
+            self.play(
+                self.w1_line.animate.set_color(GRAY).set_stroke(width=3),
+                self.w2_line.animate.set_color(GRAY).set_stroke(width=3),
+                run_time=0.3,
+            )
+
+            # Calculate z
+            z = self.w1 * x1 + self.w2 * x2 + self.b
+
+            # Show calculation (positioned on the right side)
+            calc_text = MathTex(
+                f"z = {self.w1:.2f} \\cdot {x1:.1f} + {self.w2:.2f} \\cdot {x2:.1f} + {self.b:.2f}",
+                font_size=22,
+            )
+            calc_text.to_edge(RIGHT, buff=0.8).shift(UP * 1.5)
+
+            z_result = MathTex(f"z = {z:.2f}", font_size=26, color=BLUE)
+            z_result.next_to(calc_text, DOWN, buff=0.4)
+
+            self.play(Write(calc_text), run_time=0.8)
+            self.wait(0.3)
+            self.play(Write(z_result), run_time=0.6)
+
+            # Neuron activates
+            self.play(
+                self.neuron.animate.set_fill(YELLOW, opacity=min(abs(z) * 0.4, 0.5)),
+                run_time=0.5,
+            )
+
+            # Calculate prediction
+            y_pred = 1 if z >= 0 else 0
+
+            # Show prediction
+            pred_text = MathTex(
+                f"y_{{pred}} = {y_pred}", font_size=26, color=GREEN
+            )
+            pred_text.next_to(z_result, DOWN, buff=0.4)
+            self.play(Write(pred_text), run_time=0.6)
+
+            # Output pulses
+            self.play(
+                self.output_circle.animate.scale(1.2).set_fill(
+                    GREEN if y_pred == target else RED, opacity=0.6
+                ),
+                run_time=0.4,
+            )
+            self.play(
+                self.output_circle.animate.scale(1 / 1.2).set_fill(GREEN, opacity=0.3),
+                self.y_value.animate.set_value(y_pred),
+                run_time=0.4,
+            )
+
+            # Calculate error
+            error = target - y_pred
+            error_color = GREEN if error == 0 else RED
+
+            error_text = MathTex(
+                f"\\text{{erro}} = {target} - {y_pred} = {error}",
+                font_size=24,
+                color=error_color,
+            )
+            error_text.next_to(pred_text, DOWN, buff=0.4)
+            self.play(Write(error_text), run_time=0.8)
+            self.wait(0.5)
+
+            # Update weights if error
+            if error != 0:
+                # Calculate new weights
+                new_w1 = self.w1 + self.eta * error * x1
+                new_w2 = self.w2 + self.eta * error * x2
+                new_b = self.b + self.eta * error
+
+                # Show update animation
+                self.play(
+                    self.w1_value.animate.set_value(new_w1),
+                    self.w2_value.animate.set_value(new_w2),
+                    self.b_value.animate.set_value(new_b),
+                    self.w1_line.animate.set_color(YELLOW),
+                    self.w2_line.animate.set_color(YELLOW),
+                    self.bias_line.animate.set_color(YELLOW),
+                    run_time=1.2,
+                )
+
+                # Flash effect
+                self.play(
+                    self.w1_value.animate.scale(1.3),
+                    self.w2_value.animate.scale(1.3),
+                    self.b_value.animate.scale(1.3),
+                    run_time=0.25,
+                )
+                self.play(
+                    self.w1_value.animate.scale(1 / 1.3),
+                    self.w2_value.animate.scale(1 / 1.3),
+                    self.b_value.animate.scale(1 / 1.3),
+                    run_time=0.25,
+                )
+
+                # Reset colors
+                self.play(
+                    self.w1_line.animate.set_color(GRAY),
+                    self.w2_line.animate.set_color(GRAY),
+                    self.bias_line.animate.set_color(PURPLE),
+                    run_time=0.4,
+                )
+
+                self.w1 = new_w1
+                self.w2 = new_w2
+                self.b = new_b
+            else:
+                # Show checkmark
+                check = Text("✓", font_size=40, color=GREEN, weight=BOLD)
+                check.next_to(error_text, RIGHT, buff=0.3)
+                self.play(Write(check), run_time=0.5)
+                self.wait(0.5)
+                self.play(FadeOut(check), run_time=0.3)
+
+            # Clear info
+            self.play(
+                FadeOut(calc_text),
+                FadeOut(z_result),
+                FadeOut(pred_text),
+                FadeOut(error_text),
+                self.neuron.animate.set_fill(YELLOW, opacity=0.2),
+                run_time=0.6,
+            )
+            self.wait(0.5)
+
+        # Final message
+        final_text = VGroup(
+            Text("✓ Treinamento Completo!", font_size=32, color=GREEN, weight=BOLD),
+            Text(
+                f"Pesos finais: w₁={self.w1:.2f}, w₂={self.w2:.2f}, b={self.b:.2f}",
+                font_size=24,
+                color=YELLOW,
+            ),
+        ).arrange(DOWN, buff=0.4)
+        final_text.to_edge(DOWN, buff=0.8)
+
+        self.play(
+            Write(final_text),
+            self.neuron.animate.set_color(GREEN).set_stroke(width=4),
+            run_time=1.5,
+        )
+
+        # Celebration pulse
+        for _ in range(2):
+            self.play(self.neuron.animate.scale(1.15), run_time=0.3)
+            self.play(self.neuron.animate.scale(1 / 1.15), run_time=0.3)
+
+        self.wait(1)
 
 
 # ==============================================================================
+# ==============================================================================
 # DURAÇÃO APROXIMADA:
 # - PerceptronArchitecture: ~45-50 segundos
-# - ANDSuccess: ~35-40 segundos
-# - XORFailure: ~45-50 segundos
-# TOTAL: ~2 minutos
+# - PerceptronLearningDemo: ~50-60 segundos
+# TOTAL: ~1:45 minutos
 # ==============================================================================
