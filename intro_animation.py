@@ -13,10 +13,23 @@ GRID_COLOR = ManimColor("#3c4152")
 
 
 class IntroAnimation(Scene):
+    speed_scale = 2.0  # bigger -> slower (2x slower here)
+
+    def play(self, *args, **kwargs):
+        if "run_time" in kwargs:
+            kwargs["run_time"] *= self.speed_scale
+        else:
+            kwargs["run_time"] = 1.0 * self.speed_scale
+        super().play(*args, **kwargs)
+
+    def wait(self, duration=1, *args, **kwargs):
+        duration *= self.speed_scale
+        return super().wait(duration, *args, **kwargs)
+
     def construct(self):
         self.camera.background_color = DARK_BG
 
-        # --- titulo -----------------------------------------------------------------
+        # titulo
         title = Text("Gradiente Descendente", font_size=70, weight=BOLD, color=TEXT_PRIMARY)
 
         self.play(FadeIn(title, shift=UP * 0.4), run_time=1.0)
@@ -26,7 +39,7 @@ class IntroAnimation(Scene):
             run_time=1.0,
         )
 
-        # --- rede neural simples ---------------------------------------------------
+        # rede neural simples
         layer_sizes = [3, 4, 2]
         layers = VGroup()
         edges = VGroup()
@@ -67,7 +80,6 @@ class IntroAnimation(Scene):
             run_time=1.0,
         )
 
-        # pulsos para sugerir atividade
         pulse_edges = edges.copy().set_stroke(color=NETWORK_GLOW, width=2.4, opacity=0.7)
         self.play(
             LaggedStart(
@@ -86,7 +98,7 @@ class IntroAnimation(Scene):
 
         self.play(FadeOut(network, shift=UP * 0.2), run_time=0.8)
 
-        # --- grafico 1D com minimo local -------------------------------------------
+        # grafico 1D com minimo local
         axes = Axes(
             x_range=[-4, 4, 1],
             y_range=[-3, 4, 1],
@@ -108,8 +120,7 @@ class IntroAnimation(Scene):
         local_min_x = 1.1
         samples = 30
         x_values = np.linspace(start_x, local_min_x, samples)
-        
-        # Construir o caminho corretamente
+
         path_points = [axes.c2p(x, loss_curve(x)) for x in x_values]
         path = VMobject()
         path.set_points_as_corners(path_points)
@@ -120,11 +131,9 @@ class IntroAnimation(Scene):
 
         self.play(FadeIn(descent_point, scale=1.3))
         self.add(tracer)
-        
-        # Adicionar mais movimento - primeiro descida rápida, depois oscilações ao se estabilizar
+
         self.play(MoveAlongPath(descent_point, path), run_time=2.5, rate_func=rush_into)
-        
-        # Pequenas oscilações no mínimo local (simulando convergência)
+
         for _ in range(3):
             self.play(
                 descent_point.animate.shift(UP * 0.08),
@@ -136,14 +145,13 @@ class IntroAnimation(Scene):
                 run_time=0.15,
                 rate_func=smooth
             )
-        
-        # Pulsar para destacar que chegou ao mínimo
+
         self.play(
             descent_point.animate.scale(1.5),
             rate_func=there_and_back,
             run_time=0.6
         )
-        
+
         self.wait(0.8)
 
         self.play(*[FadeOut(mob) for mob in self.mobjects], run_time=1.0)

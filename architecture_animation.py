@@ -46,17 +46,17 @@ class SimplifiedPath(Scene):
             ).arrange(RIGHT, buff=0.3),
             
             VGroup(
-                MathTex(r"L", font_size=28, color=RED),
-                Text("= Loss function (ex: Mean Squared Error)", font_size=22),
+                MathTex(r"\mathcal{L}", font_size=28, color=RED),
+                Text("= Loss function - mede o erro da predição", font_size=22),
             ).arrange(RIGHT, buff=0.3),
             
             VGroup(
                 MathTex(r"\hat{y}", font_size=28, color=GREEN),
                 Text("= Predição da rede", font_size=22),
             ).arrange(RIGHT, buff=0.3),
-        ).arrange(DOWN, aligned_edge=LEFT, buff=0.5)
+        ).arrange(DOWN, aligned_edge=LEFT, buff=0.4)
         
-        terms.next_to(glossary_title, DOWN, buff=0.8)
+        terms.next_to(glossary_title, DOWN, buff=0.6)
         
         self.play(Write(glossary_title), run_time=1.5)
         self.wait(1)
